@@ -52,6 +52,12 @@ struct proc {
   int ctime;                   // Creation time of the process
   int etime;                   // End time of the process 
   int rtime;                   // Running time of the Process
+  int priority;                // The priorirty level for PBS
+  int cur_q;                   // Current queue of the process
+  int time_in_q[5];            // Time spent in queues
+  int entry;                   // Entry time which will be reset after
+  int time_slice;              // Number of time slices allowed.
+  int ran_times;               // Times the process ran.
 };
 
 // Process memory is laid out contiguously, low addresses first:

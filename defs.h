@@ -121,6 +121,7 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 int 			waitx(int* wtime, int* rtime);
+int 			set_priority(int new_priority, int pid);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
@@ -189,3 +190,4 @@ void            clearpteu(pde_t *pgdir, char *uva);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+#define SHIFT_BYTE 4
