@@ -78,7 +78,7 @@ scheduler(void)
       p->time_slice = (int) (1u << (unsigned int) priority_level); // assign ticks to process based on priority level
       p->state = RUNNING;
       p->ran_times += 1;
-      cprintf("MLFQ: Process switching to %d in queue %d for %d ticks\n", p->pid, p->cur_q, p->time_slice);
+      // cprintf("MLFQ: Process switching to %d in queue %d for %d ticks\n", p->pid, p->cur_q, p->time_slice);
       swtch(&(c->scheduler), p->context);
       //cprintf("MLFQ: Back to scd!\n");
       switchkvm();
@@ -88,7 +88,7 @@ scheduler(void)
         p->cur_q = -1;
        } else if (p->cur_q < 4) {
         p->cur_q += 1;
-        cprintf("MLFQ: Process %d demoted to %d queue\n", p->pid, p->cur_q);
+        // cprintf("MLFQ: Process %d demoted to %d queue\n", p->pid, p->cur_q);
        }
       }
 

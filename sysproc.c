@@ -118,3 +118,8 @@ sys_set_priority(void)
     return -1;
   return set_priority(new_priority, pid);
 }
+
+int sys_procdump(void) {
+  procdump();
+  return 0;
+}
