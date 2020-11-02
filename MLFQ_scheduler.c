@@ -38,6 +38,8 @@ extern void trapret(void);
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 
+int var = 0;
+
 void
 scheduler(void)
 {
@@ -47,6 +49,7 @@ scheduler(void)
   for(;;){
     /* Enable interrupts on this processor. */
     sti();
+
 
     /* Loop over process table looking for process to run. */
     acquire(&ptable.lock);
@@ -62,10 +65,15 @@ scheduler(void)
       for(struct proc *min_entry_proc = ptable.proc; \
             min_entry_proc < &ptable.proc[NPROC]; \
             min_entry_proc++) {
-        if(min_entry_proc->state == RUNNABLE && min_entry_proc->entry < min_entry) {
+
+        if(min_entry_proc->state == RUNNABLE \
+          && min_entry_proc->entry < min_entry\
+          && min_entry_proc->cur_q == priority_level) {
           // cprintf("Found one process in queue %d", min_entry_proc->cur_q);        
+          min_entry = min_entry_proc->entry;
           p = min_entry_proc;
         }
+      
       }
 
       if (p == 0) {
@@ -73,22 +81,22 @@ scheduler(void)
         continue;
       }
       /* Switching process to the found process */
-      c->proc = p;
       switchuvm(p);
       p->time_slice = (int) (1u << (unsigned int) priority_level); // assign ticks to process based on priority level
       p->state = RUNNING;
       p->ran_times += 1;
+      c->proc = p;
       // cprintf("MLFQ: Process switching to %d in queue %d for %d ticks\n", p->pid, p->cur_q, p->time_slice);
       swtch(&(c->scheduler), p->context);
       //cprintf("MLFQ: Back to scd!\n");
       switchkvm();
       // if the process uses entire time slice put move it down in prio
       if (p->time_slice == 0) {
-       if(p->state == ZOMBIE){
+       if(p->cur_q > 0 && p->state == ZOMBIE){
         p->cur_q = -1;
-       } else if (p->cur_q < 4) {
+       } else if (p->cur_q != 4) {
         p->cur_q += 1;
-        // cprintf("MLFQ: Process %d demoted to %d queue\n", p->pid, p->cur_q);
+        // cprintf("MLFQ: Process %d demoted to %d queue time: %d\n", p->pid, p->cur_q, ticks);
        }
       }
 
@@ -96,18 +104,19 @@ scheduler(void)
         Checking for aging, if conditions satisfy we shift the process
         to the level above it.
       */
-      for(struct proc *min_entry_proc = ptable.proc; min_entry_proc < &ptable.proc[NPROC]; min_entry_proc++) {
-        if(min_entry_proc->state == RUNNABLE) {
-          int time_ran = 1 << (priority_level + SHIFT_BYTE);
-          if(ticks - min_entry_proc->entry > time_ran) {
+      for(struct proc *proc = ptable.proc; proc < &ptable.proc[NPROC]; proc++) {
+        if(proc->state == RUNNABLE) {
+          int time_ran = 1 << (p->cur_q + SHIFT_BYTE - 1);
+          if(ticks - proc->entry > time_ran) {
             /* 
-              the new entry time of the process is the current time
+              the new entry time of the processors is the current time
               since it just entered the queue.
             */
-            min_entry_proc->entry = ticks;
-            if(min_entry_proc->cur_q == 0)
+            proc->entry = ticks;
+            if(proc->cur_q <= 0)
               continue;
-            min_entry_proc->cur_q -= 1;
+            proc->cur_q -= 1;
+            // cprintf("MLFQ: Process %d promoted to %d queue time: %d\n", proc->pid, proc->cur_q, ticks);
           }
         }
       }
@@ -140,15 +149,17 @@ trap(struct trapframe *tf)
       acquire(&tickslock);
       ticks++;
       // Updating the run time of the process running currently
-      if(myproc() != 0 && myproc()->state == RUNNING) {
-        myproc()->rtime += 1;
-        /* 1 more tick spent in the current queue */
-        myproc()->time_in_q[myproc()->cur_q] += 1;
-        /* One tick of the process got used up */
-        myproc()->time_slice -= 1;
-      }
       wakeup(&ticks);
       release(&tickslock);
+      for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if(p != 0 && p->state == RUNNING) {
+          p->rtime += 1;
+          /* 1 more tick spent in the current queue */
+          p->time_in_q[myproc()->cur_q] += 1;
+          /* One tick of the process got used up */
+          p->time_slice -= 1;
+        }
+      }
     }
     lapiceoi();
     break;

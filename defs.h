@@ -190,4 +190,11 @@ void            clearpteu(pde_t *pgdir, char *uva);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
-#define SHIFT_BYTE 4
+#define SHIFT_BYTE 7
+
+// scheduler type
+
+#define SCHEDULER_RR 0
+#define SCHEDULER_PBS 1
+#define SCHEDULER_FCFS 2
+#define SCHEDULER_MLFQ 3s

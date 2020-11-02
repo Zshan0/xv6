@@ -65,7 +65,7 @@ scheduler(void)
       c->proc = min_time;
       switchuvm(min_time);
       min_time->state = RUNNING;
-
+      p->ran_times += 1;      
       // cprintf("switching to process pid: %d\n", min_time->pid);
       swtch(&(c->scheduler), min_time->context);
       switchkvm();
@@ -100,11 +100,13 @@ trap(struct trapframe *tf)
       acquire(&tickslock);
       ticks++;
       // Updating the run time of the process running currently
-      if(myproc() != 0 && myproc()->state == RUNNING) {
-        myproc()->rtime += 1;
-      }
       wakeup(&ticks);
       release(&tickslock);
+      for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if(p != 0 && p->state == RUNNING) {
+          p->rtime += 1;
+        }
+      }
     }
     lapiceoi();
     break;

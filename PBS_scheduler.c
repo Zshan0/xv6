@@ -29,6 +29,7 @@ extern void trapret(void);
 
 
 
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -46,7 +47,7 @@ scheduler(void)
   c->proc = 0;
   for(;;){
     // Enable interrupts on this processor.
-    int priority = 100;
+    int priority = 101;
     int found = 0;
     sti();
 
@@ -68,9 +69,9 @@ scheduler(void)
           c->proc = same_priority;
           switchuvm(same_priority);
           same_priority->state = RUNNING;
-
-          cprintf("switching to process pid: %d %d\n", \
-                same_priority->pid, same_priority->priority);
+          p->ran_times += 1;
+          // cprintf("switching to process pid: %d %d\n",
+          //       same_priority->pid, same_priority->priority);
           swtch(&(c->scheduler), same_priority->context);
           switchkvm();
 
@@ -113,11 +114,13 @@ trap(struct trapframe *tf)
       acquire(&tickslock);
       ticks++;
       // Updating the run time of the process running currently
-      if(myproc() != 0 && myproc()->state == RUNNING) {
-        myproc()->rtime += 1;
-      }
       wakeup(&ticks);
       release(&tickslock);
+      for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if(p != 0 && p->state == RUNNING) {
+          p->rtime += 1;
+        }
+      }
     }
     lapiceoi();
     break;

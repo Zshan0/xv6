@@ -12,6 +12,7 @@ extern struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
+
 // Interrupt descriptor table (shared by all CPUs).
 extern struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
@@ -59,7 +60,7 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-      cprintf("process switching to %d\n", p->pid);
+      // cprintf("process switching to %d\n", p->pid);
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -92,11 +93,13 @@ trap(struct trapframe *tf)
       acquire(&tickslock);
       ticks++;
       // Updating the run time of the process running currently
-      if(myproc() != 0 && myproc()->state == RUNNING) {
-        myproc()->rtime += 1;
-      }
       wakeup(&ticks);
       release(&tickslock);
+      for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if(p != 0 && p->state == RUNNING) {
+          p->rtime += 1;
+        }
+      }
     }
     lapiceoi();
     break;

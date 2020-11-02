@@ -1,0 +1,24 @@
+Booting from Hard Disk..xv6...
+cpu0: starting 0
+sb: size 1000 nblocks 941 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
+MLFQ: Process 1 demoted to 1 queue time: 3
+init: starting sh
+MLFQ: Process 2 demoted to 1 queue time: 4
+$ benchmark
+MLFQ: Process 3 demoted to 1 queue time: 283
+MLFQ: Process 3 demoted to 2 queue time: 285
+Benchmark: 0 Exited
+Benchmark: 3 Exited
+Benchmark: 6 Exited
+Benchmark: 9 Exited
+Benchmark: 2 Exited
+MLFQ: Process 3 promoted to 1 queue time: 785
+Benchmark: 5 Exited
+Benchmark: 8 Exited
+Benchmark: 1 Exited
+MLFQ: Process 3 promoted to 0 queue time: 985
+Benchmark: 4 Exited
+MLFQ: Process 3 demoted to 1 queue time: 986
+Benchmark: 7 Exited
+MLFQ: Process 2 promoted to 0 queue time: 986
+$ QEMU: Terminated

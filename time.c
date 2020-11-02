@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
   } else {
     int r, w;
     waitx(&r, &w);
-    printf(1, "%d %d", r, w);
+    printf(1, "\nProcess completed\n runtime:%d\n waitime:%d\n", r, w);
   }
   exit();
 }

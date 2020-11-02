@@ -32,6 +32,7 @@ cpuid() {
   return mycpu()-cpus;
 }
 
+
 // Must be called with interrupts disabled to avoid the caller being
 // rescheduled between reading lapicid and running through the loop.
 struct cpu*
@@ -316,6 +317,12 @@ wait(void)
         p->rtime = 0;
         p->etime = 0;
         p->ctime = 0;
+        p->priority = 0;
+        p->cur_q = 0;
+        for(int i = 0; i <= 4; i += 1) {
+          p->time_in_q[i] = 0;
+        }
+        p->ran_times = 0;
         release(&ptable.lock);
         return pid;
       }
@@ -515,7 +522,7 @@ void
 procdump(void)
 {
   acquire(&ptable.lock);
-    cprintf("%s %s %s %s %s %s  %s  %s  %s  %s  %s  %s\n",
+    cprintf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
             "PID", "Prio", "State", "r_time", "w_time", "n_run", "cur_q", "q0", "q1", "q2", "q3", "q4");
     static char *states[] = {
     [UNUSED]    "unused",
@@ -537,7 +544,7 @@ procdump(void)
         state = "???";
       
       // Time it has existed - time it has run is the wait time.
-      cprintf("%d     %d    %s   %d    %d    %d    %d     %d    %d    %d    %d    %d\n",
+      cprintf("%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
         p->pid,
         p->priority,
         state,
