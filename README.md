@@ -1,7 +1,3 @@
-# Assignment 5
-
-[Zeeshan Ahmed - 2019111024]
-
 # Modification of xv6
 
 ### Features added
